@@ -11,22 +11,16 @@ interface FadingVideoProps extends React.VideoHTMLAttributes<HTMLVideoElement> {
   src: string;
   fallbackSrc?: string;
   sources?: FadingVideoSource[];
-  posterSrc: string;
   className?: string;
   videoClassName?: string;
-  posterClassName?: string;
-  posterAlt?: string;
 }
 
 export const FadingVideo: React.FC<FadingVideoProps> = ({
   src,
   fallbackSrc,
   sources,
-  posterSrc,
   className,
   videoClassName,
-  posterClassName,
-  posterAlt = "",
   style,
   onCanPlay,
   onError,
@@ -35,7 +29,6 @@ export const FadingVideo: React.FC<FadingVideoProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const rAfRef = useRef<number>(0);
   const fadingOutRef = useRef(false);
-  const [isReady, setIsReady] = useState(false);
   const [hasError, setHasError] = useState(false);
 
   const fadeTo = (targetOpacity: number) => {
@@ -93,23 +86,15 @@ export const FadingVideo: React.FC<FadingVideoProps> = ({
 
   return (
     <div className={cn("overflow-hidden", className)}>
-      <img
-        src={posterSrc}
-        alt={posterAlt}
-        className={cn("absolute inset-0 h-full w-full object-cover", posterClassName)}
-        decoding="async"
-        fetchPriority="high"
-      />
       <video
         ref={videoRef}
         className={cn("absolute inset-0 h-full w-full object-cover transition-opacity duration-500", videoClassName)}
-        style={{ ...style, opacity: isReady && !hasError ? 1 : 0 }}
+        style={{ ...style, opacity: hasError ? 0 : 1 }}
         autoPlay
         muted
         playsInline
-        preload="metadata"
+        preload="auto"
         onCanPlay={(event) => {
-          setIsReady(true);
           event.currentTarget.play().catch(() => setHasError(true));
           fadeTo(1);
           onCanPlay?.(event);

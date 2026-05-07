@@ -14,7 +14,6 @@
 
 ```text
 /video/hero.webm
-/images/hero-poster.jpg
 /images/risk-facade.jpg
 /images/flight-building.jpg
 /images/intelligence-facade.jpg
@@ -37,16 +36,16 @@
 已检查参数：
 
 ```text
-codec: h264
+codec: vp9
 size: 3840x2160
 pixel format: yuv420p
-frame rate: 60fps
-duration: 15.07s
-file size: 12.1MB
-audio: AAC audio track present
+frame rate: 24fps
+duration: 15.00s
+file size: 9.37MB
+audio: none
 ```
 
-视觉判断：城市公共建筑主体明确，航拍推进和蓝色扫描光符合 Hero 方向，适合作为首屏源视频。上线前必须把运行时 `/public/video/hero.webm` 本身导出为无音轨、4K WebM的 web 版本，避免首屏加载偏重；不能只新增另一个优化视频而让代码继续引用超预算文件。
+视觉判断：城市公共建筑主体明确，航拍推进和蓝色扫描光符合 Hero 方向，适合作为首屏视频。运行时直接播放 4K WebM，不再使用 hero poster 或图片占位层。
 
 ## 现有参考素材
 
@@ -62,8 +61,7 @@ audio: AAC audio track present
 
 | 目标文件 | 类型 | 推荐尺寸 | 使用章节 | 生产说明 |
 |---|---|---:|---|---|
-| `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm` | MP4 | 3840x2160 source；运行时可 1920x1080 或 2560x1440 | Hero | 已到位。画面是城市公共建筑航拍推进，带蓝色扫描光；最终运行时文件必须去音轨并压到 4K WebM |
-| `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/hero-poster.jpg` | JPG | 1920x1080 | Hero fallback | 从 `public/video/hero.webm` 选一帧，视频加载前显示 |
+| `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm` | WebM | 3840x2160 | Hero | 已到位。24fps、无音轨、约 9.37MB；Hero 直接播放视频，不使用图片占位 |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/risk-facade.jpg` | JPG | 2200x1400 | Invisible Risk | 干净建筑外立面近景，留足标注空间；可参考 `report-spread.jpg` 的外墙材质 |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/flight-building.jpg` | JPG | 2200x1400 | Flight To Insight | 俯瞰或三分之二角度建筑图，适合叠加航线和采集点 |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/intelligence-facade.jpg` | JPG | 1800x1200 | Intelligence Layer | 正立面或局部立面，适合 AI 框选和风险标签 |

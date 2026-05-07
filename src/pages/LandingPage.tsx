@@ -29,11 +29,8 @@ export const LandingPage: React.FC = () => {
             { src: assetPaths.heroVideo, type: "video/webm", media: "(min-width: 768px)" },
             { src: assetPaths.heroVideoFallback, type: "video/mp4" },
           ]}
-          posterSrc={assetPaths.heroPoster}
-          posterAlt={assetAlts.heroPoster}
           className="absolute inset-0 z-0"
           videoClassName="object-[58%_50%] md:object-center"
-          posterClassName="object-[58%_50%] md:object-center"
         />
         <div className="absolute inset-0 z-0 bg-gradient-to-b from-slate-950/16 via-slate-950/20 to-slate-950/82" />
         <div className="absolute inset-x-0 bottom-0 z-0 h-28 bg-gradient-to-t from-[var(--color-ink)] to-transparent" />

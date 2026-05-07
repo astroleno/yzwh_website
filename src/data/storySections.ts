@@ -2,7 +2,6 @@ export const assetPaths = {
   heroVideo: "/video/hero.webm",
   heroVideoMobile: "/video/hero-mobile.webm",
   heroVideoFallback: "/video/hero.mp4",
-  heroPoster: "/images/hero-poster.jpg",
   riskFacade: "/images/risk-facade.jpg",
   flightBuilding: "/images/flight-building.jpg",
   intelligenceFacade: "/images/intelligence-facade.jpg",
@@ -13,7 +12,6 @@ export const assetPaths = {
 } as const;
 
 export const assetAlts = {
-  heroPoster: "现代城市公共建筑立面被克制的扫描光扫过，作为云筑万合首页品牌视觉。",
   riskFacade: "建筑外立面局部，风险标注展示空鼓、脱落、渗漏和热异常在真实材料表面的分布。",
   flightBuilding: "无人机巡检建筑的俯视空间，航线和采集点覆盖外立面与屋顶。",
   intelligenceFacade: "建筑立面影像被系统读取，检测框标出疑似渗漏、空鼓和热异常位置。",

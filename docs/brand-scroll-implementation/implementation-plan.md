@@ -116,7 +116,7 @@ mkdir -p /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images /Users/aito
 touch /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/.gitkeep
 ```
 
-Expected: `public/video/hero.webm` exists, and `public/images/` can hold `hero-poster.jpg` and section images.
+Expected: `public/video/hero.webm` exists, and `public/images/` can hold section images.
 
 - [ ] **Step 4: Add `storySections.ts`**
 
@@ -126,7 +126,6 @@ Create `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/data/storySections.ts`
 export const assetPaths = {
   heroVideo: "/video/hero.webm",
   heroVideoMobile: "/video/hero-mobile.webm",
-  heroPoster: "/images/hero-poster.jpg",
   riskFacade: "/images/risk-facade.jpg",
   flightBuilding: "/images/flight-building.jpg",
   intelligenceFacade: "/images/intelligence-facade.jpg",
@@ -137,7 +136,6 @@ export const assetPaths = {
 } as const;
 
 export const assetAlts = {
-  heroPoster: "现代城市公共建筑立面被克制的扫描光扫过，作为云筑万合首页品牌视觉。",
   riskFacade: "建筑外立面局部，风险标注展示空鼓、脱落、渗漏和热异常在真实材料表面的分布。",
   flightBuilding: "无人机巡检建筑的俯视空间，航线和采集点覆盖外立面与屋顶。",
   intelligenceFacade: "建筑立面影像被系统读取，检测框标出疑似渗漏、空鼓和热异常位置。",
@@ -822,7 +820,7 @@ Expected: all new component imports compile.
 
 - [ ] **Step 1: Replace `FadingVideo` with a visible poster underlay**
 
-Replace `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx` with a wrapper that keeps the poster visible until video `canplay`, and keeps it visible if video fails:
+Replace `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx` with a wrapper that loops the hero video directly without a poster or still-image placeholder:
 
 ```tsx
 import React, { useEffect, useRef, useState } from "react";
@@ -830,20 +828,14 @@ import { cn } from "../lib/utils";
 
 interface FadingVideoProps extends React.VideoHTMLAttributes<HTMLVideoElement> {
   src: string;
-  posterSrc: string;
   className?: string;
   videoClassName?: string;
-  posterClassName?: string;
-  posterAlt?: string;
 }
 
 export const FadingVideo: React.FC<FadingVideoProps> = ({
   src,
-  posterSrc,
   className,
   videoClassName,
-  posterClassName,
-  posterAlt = "",
   style,
   onCanPlay,
   onError,
@@ -852,7 +844,6 @@ export const FadingVideo: React.FC<FadingVideoProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const rAfRef = useRef<number>(0);
   const fadingOutRef = useRef(false);
-  const [isReady, setIsReady] = useState(false);
   const [hasError, setHasError] = useState(false);
 
   const fadeTo = (targetOpacity: number) => {
@@ -910,24 +901,16 @@ export const FadingVideo: React.FC<FadingVideoProps> = ({
 
   return (
     <div className={cn("relative overflow-hidden", className)}>
-      <img
-        src={posterSrc}
-        alt={posterAlt}
-        className={cn("absolute inset-0 h-full w-full object-cover", posterClassName)}
-        decoding="async"
-        fetchPriority="high"
-      />
       <video
         ref={videoRef}
         src={src}
         className={cn("absolute inset-0 h-full w-full object-cover transition-opacity duration-500", videoClassName)}
-        style={{ ...style, opacity: isReady && !hasError ? 1 : 0 }}
+        style={{ ...style, opacity: hasError ? 0 : 1 }}
         autoPlay
         muted
         playsInline
-        preload="metadata"
+        preload="auto"
         onCanPlay={(event) => {
-          setIsReady(true);
           event.currentTarget.play().catch(() => setHasError(true));
           fadeTo(1);
           onCanPlay?.(event);
@@ -943,7 +926,7 @@ export const FadingVideo: React.FC<FadingVideoProps> = ({
 };
 ```
 
-Expected: the poster is visible before the video loads, remains visible on video error, and the video fades in only after `canplay`.
+Expected: Hero contains a `<video>` as the visual layer and no poster `<img>` layer. The loop fade still works at the end of playback.
 
 - [ ] **Step 2: Replace `LandingPage.tsx`**
 
@@ -971,11 +954,8 @@ export const LandingPage: React.FC = () => {
       <section id="hero" className="relative flex min-h-[92dvh] flex-col justify-end overflow-hidden px-5 pb-12 pt-28 md:px-10 lg:px-16">
         <FadingVideo
           src={assetPaths.heroVideo}
-          posterSrc={assetPaths.heroPoster}
-          posterAlt={assetAlts.heroPoster}
           className="absolute inset-0 z-0"
           videoClassName="object-[58%_50%] md:object-center"
-          posterClassName="object-[58%_50%] md:object-center"
         />
         <div className="absolute inset-0 z-0 bg-gradient-to-b from-slate-950/16 via-slate-950/20 to-slate-950/82" />
         <div className="absolute inset-x-0 bottom-0 z-0 h-28 bg-gradient-to-t from-[var(--color-ink)] to-transparent" />
@@ -1116,7 +1096,6 @@ Expected: page builds with no TypeScript or Vite errors.
 
 **Files:**
 - Existing: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm`
-- Add: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/hero-poster.jpg`
 - Add: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/risk-facade.jpg`
 - Add: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/flight-building.jpg`
 - Add: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/intelligence-facade.jpg`
@@ -1137,7 +1116,7 @@ Expected: browser can load it at `/video/hero.webm`（桌面 4K）.
 
 - [ ] **Step 2: Export the runtime hero video**
 
-The current file is the high-quality source: 4K, 60fps, 15.07s, 12.1MB, with an AAC audio track. Before visual QA, replace the runtime file itself with a web export that has no audio and is under 10MB. Keep a source backup first:
+The runtime file should be 4K WebM, 24fps, no audio, and under 10MB. Keep a source backup first:
 
 ```bash
 cd /Users/aitoshuu/Documents/GitHub/yzwh_website
@@ -1146,20 +1125,18 @@ test -f public/video/source/hero-source-4k-audio.mp4 || cp public/video/hero.web
 ffmpeg -y \
   -i public/video/source/hero-source-4k-audio.mp4 \
   -map 0:v:0 -an \
-  -vf "scale=2560:-2,fps=30" \
-  -c:v libx264 -pix_fmt yuv420p -crf 24 -preset slow \
-  -movflags +faststart \
+  -vf "fps=24,scale=3840:2160:flags=lanczos" \
+  -c:v libvpx-vp9 -b:v 5000k -deadline good -cpu-used 4 -row-mt 1 \
   public/video/hero.webm
 ```
 
-Expected: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm` itself has no audio stream and is `<= 10485760` bytes. If size is still over budget, rerun the export at `-crf 25` or `scale=1920:-2`; do not point the app at a second video filename.
+Expected: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm` itself is 3840x2160, 24fps, has no audio stream, and is `<= 10485760` bytes. Do not point the app at a second desktop hero video filename.
 
-- [ ] **Step 3: Add poster and temporary stills**
+- [ ] **Step 3: Add section stills**
 
 Until final generated stills are ready, use cleaned exports derived from the reference images and keep the filenames exact:
 
 ```text
-hero-poster.jpg
 risk-facade.jpg
 flight-building.jpg
 intelligence-facade.jpg
@@ -1432,13 +1409,12 @@ Expected: no output. If this command prints `aac` or any other codec, asset QA f
 Run:
 
 ```bash
-sips -g pixelWidth -g pixelHeight -g format /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/hero-poster.jpg /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/risk-facade.jpg /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/flight-building.jpg /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/intelligence-facade.jpg /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/report-aerial-thumb.jpg /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/report-thermal-thumb.jpg /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/report-facade-thumb.jpg /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/science-museum-case.jpg
+sips -g pixelWidth -g pixelHeight -g format /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/risk-facade.jpg /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/flight-building.jpg /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/intelligence-facade.jpg /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/report-aerial-thumb.jpg /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/report-thermal-thumb.jpg /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/report-facade-thumb.jpg /Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/science-museum-case.jpg
 ```
 
 Expected:
 
 ```text
-hero-poster.jpg is at least 1920x1080
 risk-facade.jpg is at least 1800px wide
 flight-building.jpg is at least 1800px wide
 intelligence-facade.jpg is at least 1600px wide
@@ -1457,7 +1433,6 @@ find /Users/aitoshuu/Documents/GitHub/yzwh_website/public -maxdepth 2 -type f \(
 Expected:
 
 ```text
-hero-poster <= 450KB
 large section images <= 900KB each
 report thumbnails <= 300KB each
 hero.webm runtime file 4K WebM primary
