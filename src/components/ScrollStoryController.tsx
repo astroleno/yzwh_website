@@ -7,6 +7,7 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const HERO_VIDEO_TARGET_TIME = 7.45;
 const HERO_VIDEO_SCRUB_START = 0.006;
+const HERO_VIDEO_SCRUB_SMOOTHING = 0.48;
 
 export const ScrollStoryController: React.FC = () => {
   useGSAP(() => {
@@ -14,6 +15,7 @@ export const ScrollStoryController: React.FC = () => {
 
     mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
       const timelines: gsap.core.Timeline[] = [];
+      const tweens: gsap.core.Tween[] = [];
       const scrollTriggers: ScrollTrigger[] = [];
       const cleanupCallbacks: Array<() => void> = [];
       const hero = document.querySelector<HTMLElement>("[data-scroll-scene='hero']");
@@ -38,7 +40,9 @@ export const ScrollStoryController: React.FC = () => {
       if (hero && heroVideo) {
         let scrubStartTime: number | null = null;
         let queuedTime: number | null = null;
-        let seekRaf = 0;
+        let rawScrollProgress = 0;
+        let seekPending = false;
+        const playhead = { progress: 0 };
 
         const targetTime = () => {
           if (!Number.isFinite(heroVideo.duration) || heroVideo.duration <= 0) {
@@ -49,25 +53,45 @@ export const ScrollStoryController: React.FC = () => {
         };
 
         const cancelQueuedSeek = () => {
-          if (seekRaf) {
-            window.cancelAnimationFrame(seekRaf);
-            seekRaf = 0;
+          if (seekPending) {
+            gsap.ticker.remove(flushSeek);
+            seekPending = false;
           }
           queuedTime = null;
         };
 
-        const seekVideo = (time: number) => {
-          queuedTime = time;
-          if (seekRaf) return;
+        const flushSeek = () => {
+          seekPending = false;
+          gsap.ticker.remove(flushSeek);
+          if (queuedTime === null) return;
+          if (Math.abs(heroVideo.currentTime - queuedTime) > 0.01) {
+            heroVideo.currentTime = queuedTime;
+          }
+          queuedTime = null;
+        };
 
-          seekRaf = window.requestAnimationFrame(() => {
-            seekRaf = 0;
-            if (queuedTime === null) return;
-            if (Math.abs(heroVideo.currentTime - queuedTime) > 0.012) {
-              heroVideo.currentTime = queuedTime;
-            }
-            queuedTime = null;
-          });
+        const seekVideo = (time: number, immediate = false) => {
+          queuedTime = time;
+          if (immediate) {
+            flushSeek();
+            return;
+          }
+
+          if (!seekPending) {
+            seekPending = true;
+            gsap.ticker.add(flushSeek);
+          }
+        };
+
+        const beginHeroScrub = () => {
+          if (scrubStartTime === null) {
+            scrubStartTime = heroVideo.currentTime;
+          }
+
+          heroVideo.dataset.heroScrollScrub = "active";
+          if (!heroVideo.paused) {
+            heroVideo.pause();
+          }
         };
 
         const resumeHeroPlayback = () => {
@@ -79,41 +103,62 @@ export const ScrollStoryController: React.FC = () => {
           }
         };
 
-        const scrubVideoToTarget = (progress: number) => {
-          if (progress <= HERO_VIDEO_SCRUB_START) {
-            scrubStartTime = null;
+        const resumeHeroPlaybackAtStart = () => {
+          const startTime = scrubStartTime;
+          if (startTime !== null) {
+            seekVideo(startTime, true);
+          }
+          playhead.progress = 0;
+          resumeHeroPlayback();
+        };
+
+        const scrubVideoToTarget = () => {
+          const progress = playhead.progress;
+          if (rawScrollProgress <= HERO_VIDEO_SCRUB_START) {
+            if (scrubStartTime !== null) {
+              resumeHeroPlaybackAtStart();
+            }
+            return;
+          }
+
+          if (scrubStartTime === null && progress <= HERO_VIDEO_SCRUB_START) {
             return;
           }
 
           if (!Number.isFinite(heroVideo.duration) || heroVideo.duration <= 0) return;
 
-          if (scrubStartTime === null) {
-            scrubStartTime = heroVideo.currentTime;
-          }
-
-          heroVideo.dataset.heroScrollScrub = "active";
-          if (!heroVideo.paused) {
-            heroVideo.pause();
-          }
+          beginHeroScrub();
 
           const mappedProgress = gsap.utils.clamp(0, 1, (progress - HERO_VIDEO_SCRUB_START) / (1 - HERO_VIDEO_SCRUB_START));
-          seekVideo(gsap.utils.interpolate(scrubStartTime, targetTime(), mappedProgress));
+          seekVideo(gsap.utils.interpolate(scrubStartTime ?? heroVideo.currentTime, targetTime(), mappedProgress));
         };
 
-        const heroVideoTrigger = ScrollTrigger.create({
-          trigger: hero,
-          start: "top top",
-          end: "bottom top",
-          invalidateOnRefresh: true,
-          onUpdate: (self) => scrubVideoToTarget(self.progress),
-          onLeave: () => {
-            heroVideo.dataset.heroScrollScrub = "active";
-            heroVideo.pause();
-            seekVideo(targetTime());
+        const heroVideoTween = gsap.to(playhead, {
+          progress: 1,
+          ease: "none",
+          onUpdate: scrubVideoToTarget,
+          scrollTrigger: {
+            trigger: hero,
+            start: "top top",
+            end: "bottom top",
+            scrub: HERO_VIDEO_SCRUB_SMOOTHING,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              rawScrollProgress = self.progress;
+              if (self.progress <= HERO_VIDEO_SCRUB_START && scrubStartTime !== null) {
+                resumeHeroPlaybackAtStart();
+              }
+            },
+            onLeave: () => {
+              rawScrollProgress = 1;
+              beginHeroScrub();
+              playhead.progress = 1;
+              seekVideo(targetTime(), true);
+            },
+            onLeaveBack: resumeHeroPlaybackAtStart,
           },
-          onLeaveBack: resumeHeroPlayback,
         });
-        scrollTriggers.push(heroVideoTrigger);
+        tweens.push(heroVideoTween);
         cleanupCallbacks.push(cancelQueuedSeek);
       }
 
@@ -173,6 +218,10 @@ export const ScrollStoryController: React.FC = () => {
         timelines.forEach((timeline) => {
           timeline.scrollTrigger?.kill();
           timeline.kill();
+        });
+        tweens.forEach((tween) => {
+          tween.scrollTrigger?.kill();
+          tween.kill();
         });
         scrollTriggers.forEach((trigger) => trigger.kill());
         cleanupCallbacks.forEach((cleanup) => cleanup());

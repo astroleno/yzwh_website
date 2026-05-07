@@ -52,7 +52,7 @@ Hero -> Invisible Risk -> Flight To Insight -> Intelligence Layer -> Report As D
 
 **视觉**：
 
-- WebGL 全景母场景 `/images/pan_view.webp` 先出现，映射为内球面相机视角；全屏首尾淡出视频覆盖其上，桌面优先 `/video/hero-4k.mp4`，`/video/hero.webm` 作为 4K fallback。
+- WebGL 全景母场景 `/images/pan_view.webp` 先出现，映射为内球面相机视角；全屏连续 loop 视频覆盖其上，桌面优先 `/video/hero-4k.mp4`，`/video/hero.webm` 作为 4K fallback。
 - 文案左下或偏左下，避开视频主体高亮区域；主品牌陈述必须是单个语义 `h1`，宽容器、起始对齐。
 - 移动端视频使用 `object-position` 保住建筑主体；全景母场景通过相机 `fov/yaw/pitch` 单独校准，再用 390x844 和桌面截图复核建筑主体。
 - 不放统计卡片、logo 列表、功能标签堆。
@@ -60,9 +60,9 @@ Hero -> Invisible Risk -> Flight To Insight -> Intelligence Layer -> Report As D
 
 **动效**：
 
-- 初载：全景母场景先出现，视频可播放后淡入，品牌名 300ms 后淡入。
-- 循环：视频在结尾淡出，露出全景母场景后重置再淡入；全景相机保持轻微漂移。
-- 下滚：桌面端 ScrollTrigger 暂停自动播放，把视频从当前 `currentTime` 插值到约 `7.45s` 的无人机近景；若当前播放超过该时间点则回放，未到则快放。hero 文案淡出，视频压暗，第一枚风险标注在画面下缘出现。
+- 初载：全景母场景先出现，视频可播放后直接显示，品牌名 300ms 后淡入。
+- 循环：视频使用原生 `loop` 连续播放，不再手写首尾淡出、遮罩或重置转场；全景相机保持轻微漂移。
+- 下滚：桌面端 ScrollTrigger 暂停自动播放，用 GSAP `scrub` tween 把视频从当前 `currentTime` 平滑插值到约 `7.45s` 的无人机近景；若当前播放超过该时间点则回放，未到则快放。hero 文案淡出，视频压暗，第一枚风险标注在画面下缘出现。
 
 **组件落点**：
 
@@ -258,7 +258,7 @@ Hero -> Invisible Risk -> Flight To Insight -> Intelligence Layer -> Report As D
 ## 移动端策略
 
 - Hero 使用 `min-height: 92dvh` 留出下一节提示；section 使用 `100dvh/svh/dvh` 稳定移动端视口。
-- Hero 桌面和移动端使用不同视频源；全景母场景不是 poster，而是常驻 WebGL 底层，视频加载慢或循环重置时露出它。
+- Hero 桌面和移动端使用不同视频源；全景母场景不是 poster，而是常驻 WebGL 底层，视频加载慢或视频不可用时露出它。
 - Sticky 滚动段在移动端改为短 section 叠加 reveal，避免长 pin 造成卡顿。
 - 标注点数量保持 4 个以内。
 - LiquidGlass 降低 blur 强度或不用，用半透明深色面替代。

@@ -828,17 +828,18 @@ Expected: all new component imports compile.
 
 - [ ] **Step 1: Replace `FadingVideo` with a WebGL panorama-backed video wrapper**
 
-Create `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/HeroPanorama.tsx` and wire `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx` so `pan_view.webp` is mapped into an inside-out Three.js sphere. `FadingVideo` must place the video as a separate overlay and fade it out at the loop boundary:
+Create `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/HeroPanorama.tsx` and wire `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx` so `pan_view.webp` is mapped into an inside-out Three.js sphere. `FadingVideo` must place the video as a separate overlay and let the video loop natively:
 
 Implementation requirements:
 
 - `HeroPanorama` creates a `WebGLRenderer`, maps `/images/pan_view.webp` onto an inside-out `SphereGeometry`, and controls the camera with desktop/mobile `fov/yaw/pitch` presets.
+- If WebGL renderer creation fails, `HeroPanorama` must fail closed to the ink background and keep the rest of the page mounted; do not replace the panorama with a flat `<img>` poster.
 - `FadingVideo` renders `HeroPanorama` first, then renders `[data-hero-video]` as an absolutely positioned overlay.
-- The video must not use native hard `loop`; it should fade out before the ending, reset `currentTime`, replay, and fade back in so the WebGL panorama hides the seam.
-- `ScrollStoryController` must pause the Hero video after scroll begins and map the current playback time to roughly `7.45s`. If the current time is already past that point, the mapping rewinds; if it is before that point, it fast-forwards.
+- The video should use native `loop`; do not add a handmade fade-out, reset, mask, or transition effect at the seam.
+- `ScrollStoryController` must pause the Hero video after scroll begins and map the current playback time to roughly `7.45s` through a GSAP scrub tween. If the current time is already past that point, the mapping rewinds; if it is before that point, it fast-forwards.
 - The old flat `<img data-hero-panorama>` pattern is not acceptable.
 
-Expected: Hero contains a permanent `[data-hero-panorama]` WebGL canvas backed by `/images/pan_view.webp` plus a video overlay. The panorama is not a browser poster and not a flat `<img>`; it remains visible under the video and hides the loop boundary while the video resets.
+Expected: Hero contains a permanent `[data-hero-panorama]` WebGL canvas backed by `/images/pan_view.webp` plus a video overlay. The panorama is not a browser poster and not a flat `<img>`; it remains available behind the video as the stable spatial layer.
 
 - [ ] **Step 2: Replace `LandingPage.tsx`**
 
@@ -1047,12 +1048,14 @@ ffmpeg -y \
   -i public/video/source/hero-source-4k-audio.mp4 \
   -map 0:v:0 -an \
   -vf "fps=24,scale=3840:2160:flags=lanczos" \
-  -c:v libx264 -preset slow -profile:v high -level 5.2 -pix_fmt yuv420p \
-  -b:v 5000k -movflags +faststart \
+  -c:v libx264 -preset medium -profile:v high -level 5.2 -pix_fmt yuv420p \
+  -b:v 4500k -maxrate 5400k -bufsize 9000k \
+  -g 12 -keyint_min 12 -sc_threshold 0 \
+  -movflags +faststart \
   public/video/hero-4k.mp4
 ```
 
-Expected: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-4k.mp4` itself is 3840x2160, 24fps, H.264/yuv420p, has no audio stream, and is `<= 10485760` bytes. `/video/hero.webm` remains a 4K VP9 fallback, not the desktop primary.
+Expected: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-4k.mp4` itself is 3840x2160, 24fps, H.264/yuv420p, has no audio stream, is `<= 10485760` bytes, and has a 0.5s / GOP 12 keyframe interval for smoother GSAP scroll scrubbing. `/video/hero.webm` remains a 4K VP9 fallback, not the desktop primary.
 
 - [ ] **Step 3: Add section stills**
 

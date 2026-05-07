@@ -40,11 +40,16 @@ export const HeroPanorama: React.FC<HeroPanoramaProps> = ({ src, alt, className 
     const camera = new PerspectiveCamera(54, 1, 0.1, 1000);
     camera.rotation.order = "YXZ";
 
-    const renderer = new WebGLRenderer({
-      antialias: false,
-      alpha: false,
-      powerPreference: "high-performance",
-    });
+    let renderer: WebGLRenderer;
+    try {
+      renderer = new WebGLRenderer({
+        antialias: false,
+        alpha: false,
+        powerPreference: "high-performance",
+      });
+    } catch {
+      return;
+    }
     renderer.setClearColor(0x07111f, 1);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     renderer.domElement.className = "absolute inset-0 h-full w-full";

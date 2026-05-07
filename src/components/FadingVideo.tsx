@@ -34,8 +34,6 @@ export const FadingVideo: React.FC<FadingVideoProps> = ({
   ...props
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const seamTimeoutRef = useRef<number>(0);
-  const seamActiveRef = useRef(false);
   const [isVideoVisible, setIsVideoVisible] = useState(false);
   const [hasError, setHasError] = useState(false);
 
@@ -66,50 +64,6 @@ export const FadingVideo: React.FC<FadingVideoProps> = ({
     };
   }, []);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || hasError) return;
-
-    const resetLoop = () => {
-      window.clearTimeout(seamTimeoutRef.current);
-      seamTimeoutRef.current = window.setTimeout(() => {
-        if (!videoRef.current || hasError) return;
-        videoRef.current.currentTime = 0;
-        videoRef.current.play().catch(() => undefined);
-        setIsVideoVisible(true);
-        window.setTimeout(() => {
-          seamActiveRef.current = false;
-        }, 220);
-      }, 620);
-    };
-
-    const handleTimeUpdate = () => {
-      if (!video.duration || seamActiveRef.current) return;
-      const remaining = video.duration - video.currentTime;
-      if (remaining <= 0.85 && remaining > 0) {
-        seamActiveRef.current = true;
-        setIsVideoVisible(false);
-        resetLoop();
-      }
-    };
-
-    const handleEnded = () => {
-      if (seamActiveRef.current) return;
-      seamActiveRef.current = true;
-      setIsVideoVisible(false);
-      resetLoop();
-    };
-
-    video.addEventListener("timeupdate", handleTimeUpdate);
-    video.addEventListener("ended", handleEnded);
-
-    return () => {
-      window.clearTimeout(seamTimeoutRef.current);
-      video.removeEventListener("timeupdate", handleTimeUpdate);
-      video.removeEventListener("ended", handleEnded);
-    };
-  }, [hasError]);
-
   return (
     <div className={cn("overflow-hidden", className)}>
       <HeroPanorama
@@ -120,9 +74,10 @@ export const FadingVideo: React.FC<FadingVideoProps> = ({
       <video
         ref={videoRef}
         data-hero-video
-        className={cn("absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-out", videoClassName)}
+        className={cn("absolute inset-0 h-full w-full object-cover", videoClassName)}
         style={{ ...style, opacity: hasError || !isVideoVisible ? 0 : 1 }}
         autoPlay
+        loop
         muted
         playsInline
         preload="auto"

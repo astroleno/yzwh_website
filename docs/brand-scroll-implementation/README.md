@@ -6,7 +6,7 @@
 
 ## 核心结论
 
-- 第一版采用「WebGL 全景母场景 + 首尾淡出视频 + Hero 视频滚动接管 + 2.5D 图层 + SVG/DOM 标注 + 桌面 GSAP/ScrollTrigger + 移动端轻量 reveal」实现。Three.js 只用于 Hero 的全景纹理置入，不引入整站 GLB。
+- 第一版采用「WebGL 全景母场景 + 原生连续 Hero 视频 + Hero 视频滚动接管 + 2.5D 图层 + SVG/DOM 标注 + 桌面 GSAP/ScrollTrigger + 移动端轻量 reveal」实现。Three.js 只用于 Hero 的全景纹理置入，不引入整站 GLB。
 - GLB 只作为二期增强项：优先考虑一个轻量无人机 GLB，用在 `Flight To Insight` 段；不建议第一版制作整栋建筑或城市 GLB。
 - 项目根目录已经落成 Vite、React、Tailwind v4、`motion`、`FadingVideo`、`HeroPanorama`、`LiquidGlass`、`three` 与 `gsap` / `@gsap/react` 的实现。
 - 参考站的内容和视觉要大幅替换：去掉太空模板、英文占位文案、统计卡片、合作 logo、紫蓝太空氛围。
