@@ -8,3 +8,4 @@ coverage/
 .review-screens/
 reference/
 public/video/source/
+.vercel
