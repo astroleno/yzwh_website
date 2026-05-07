@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+@theme {
+  --font-heading: "Helvetica Neue", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+  --font-body: "Helvetica Neue", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+}
+
+:root {
+  --color-ink: #07111f;
+  --color-deep: #101b2b;
+  --color-steel: #213246;
+  --color-blue: #2e5c97;
+  --color-cyan: #60d2be;
+  --color-mist: #f3f6fa;
+  --color-line: rgba(216, 224, 232, 0.32);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background-color: var(--color-ink);
+  color: #fff;
+  font-family: var(--font-body);
+}
+
+.liquid-glass {
+  background: rgba(7, 17, 31, 0.34);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(216, 224, 232, 0.18);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.liquid-glass-strong {
+  background: rgba(243, 246, 250, 0.9);
+  color: var(--color-ink);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.18);
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+.tracking-tighter-max {
+  letter-spacing: 0;
+}
+
+.rounded-pill {
+  border-radius: 9999px;
+}
+
+.diagnostic-grid {
+  background-image:
+    linear-gradient(rgba(96, 210, 190, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(96, 210, 190, 0.08) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.story-media {
+  min-height: min(760px, calc(100dvh - 96px));
+}
+
+.pin-buffer-section {
+  overflow: visible;
+  padding-bottom: 6rem;
+}
+
+.gsap-desktop-only {
+  display: block;
+}
+
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .pin-buffer-section {
+    padding-bottom: calc(6rem + 100vh);
+  }
+
+}
+
+@media (max-width: 767px) {
+  .story-media {
+    min-height: 520px;
+  }
+
+  .diagnostic-grid {
+    background-size: 32px 32px;
+  }
+
+  .gsap-desktop-only {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
