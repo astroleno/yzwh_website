@@ -32,11 +32,11 @@
 | Path | Action | Responsibility |
 |---|---|---|
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/package.json` | Modify | Add `gsap` and `@gsap/react` for desktop scrolltelling |
-| `/Users/aitoshuu/Documents/GitHub/yzwh_website/vite.config.ts` | Modify | Serve repo-root `public/` so `/video/hero.webm`（桌面 4K） resolves from the root Vite app |
+| `/Users/aitoshuu/Documents/GitHub/yzwh_website/vite.config.ts` | Modify | Serve repo-root `public/` so `/video/hero-4k.mp4` and fallback video assets resolve from the root Vite app |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/pages/LandingPage.tsx` | Modify | Page orchestration and all section order |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/Navbar.tsx` | Modify | Brand navigation and primary CTA |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/BlurText.tsx` | Optional modify | Chinese-friendly text reveal only if reused outside the Hero; Hero `h1` must not depend on BlurText |
-| `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx` | Modify | Render poster underlay, fade video on `canplay`, and keep visible fallback on error |
+| `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx` | Modify | Render native autoplaying looping hero video without poster underlay |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/index.css` | Modify | Design tokens, section utilities, reduced glass intensity |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/data/storySections.ts` | Create | Copy, labels, coordinates, case steps |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/SectionFrame.tsx` | Create | Shared section heading and layout shell |
@@ -46,7 +46,8 @@
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/ReportSequence.tsx` | Create | DOM/SVG report mock and report aggregation visual |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/CaseStoryboard.tsx` | Create | 深圳科学馆 four-step case |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/ScrollStoryController.tsx` | Create | Isolated GSAP/ScrollTrigger desktop orchestration and cleanup |
-| `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm` | Existing | Hero runtime video source |
+| `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-4k.mp4` | Existing | Hero desktop primary video source |
+| `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm` | Existing | Hero desktop fallback video source |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/` | Create if missing | Runtime image assets |
 
 ## Milestones
@@ -56,7 +57,7 @@
 | 1 | Static story complete | All six sections render in order with Chinese copy and stable responsive layout |
 | 2 | Static accessibility complete | All story images have meaningful alt text or adjacent accessible summaries; report core content is DOM text |
 | 3 | Desktop scrolltelling complete | GSAP pins Flight and keeps Report as a stable DOM section by scroll progress, and cleans up on unmount |
-| 4 | Asset pass complete | Hero video loads from `/video/hero.webm`（桌面 4K）, section images load from `/images/*`, no remote CloudFront template videos remain, and media meets byte/codec/dimension budgets |
+| 4 | Asset pass complete | Hero desktop video loads from `/video/hero-4k.mp4`, fallback video assets load from `/video/*`, section images load from `/images/*`, no remote CloudFront template videos remain, and media meets byte/codec/dimension budgets |
 | 5 | QA complete | `npm run lint` and `npm run build` pass; desktop and mobile visual checks show no blank media or overlapping text |
 
 ## Task 1: Dependencies, Asset Directory, And Story Data
@@ -125,7 +126,9 @@ Create `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/data/storySections.ts`
 ```ts
 export const assetPaths = {
   heroVideo: "/video/hero.webm",
+  heroVideoMp4: "/video/hero-4k.mp4",
   heroVideoMobile: "/video/hero-mobile.webm",
+  heroVideoFallback: "/video/hero.mp4",
   riskFacade: "/images/risk-facade.jpg",
   flightBuilding: "/images/flight-building.jpg",
   intelligenceFacade: "/images/intelligence-facade.jpg",
@@ -818,7 +821,7 @@ Expected: all new component imports compile.
 - Modify: `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/pages/LandingPage.tsx`
 - Modify: `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx`
 
-- [ ] **Step 1: Replace `FadingVideo` with a visible poster underlay**
+- [ ] **Step 1: Replace `FadingVideo` with a native looping video wrapper**
 
 Replace `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx` with a wrapper that loops the hero video directly without a poster or still-image placeholder:
 
@@ -954,6 +957,13 @@ export const LandingPage: React.FC = () => {
       <section id="hero" className="relative flex min-h-[92dvh] flex-col justify-end overflow-hidden px-5 pb-12 pt-28 md:px-10 lg:px-16">
         <FadingVideo
           src={assetPaths.heroVideo}
+          fallbackSrc={assetPaths.heroVideoFallback}
+          sources={[
+            { src: assetPaths.heroVideoMobile, type: "video/webm", media: "(max-width: 767px)" },
+            { src: assetPaths.heroVideoFallback, type: "video/mp4", media: "(max-width: 767px)" },
+            { src: assetPaths.heroVideoMp4, type: "video/mp4", media: "(min-width: 768px)" },
+            { src: assetPaths.heroVideo, type: "video/webm", media: "(min-width: 768px)" },
+          ]}
           className="absolute inset-0 z-0"
           videoClassName="object-[58%_50%] md:object-center"
         />
@@ -1095,7 +1105,10 @@ Expected: page builds with no TypeScript or Vite errors.
 ## Task 6: Replace Temporary Assets
 
 **Files:**
+- Existing: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-4k.mp4`
 - Existing: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm`
+- Existing: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-mobile.webm`
+- Existing: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.mp4`
 - Add: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/risk-facade.jpg`
 - Add: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/flight-building.jpg`
 - Add: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/intelligence-facade.jpg`
@@ -1109,28 +1122,28 @@ Expected: page builds with no TypeScript or Vite errors.
 The generated loop is already at:
 
 ```text
-/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm
+/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-4k.mp4
 ```
 
-Expected: browser can load it at `/video/hero.webm`（桌面 4K）.
+Expected: browser can load it at `/video/hero-4k.mp4`（桌面 4K primary）.
 
 - [ ] **Step 2: Export the runtime hero video**
 
-The runtime file should be 4K WebM, 24fps, no audio, and under 10MB. Keep a source backup first:
+The runtime desktop primary file should be 4K MP4, H.264, 24fps, no audio, `faststart`, and under 10MB. Keep a source backup first:
 
 ```bash
 cd /Users/aitoshuu/Documents/GitHub/yzwh_website
 mkdir -p public/video/source
-test -f public/video/source/hero-source-4k-audio.mp4 || cp public/video/hero.webm public/video/source/hero-source-4k-audio.mp4
 ffmpeg -y \
   -i public/video/source/hero-source-4k-audio.mp4 \
   -map 0:v:0 -an \
   -vf "fps=24,scale=3840:2160:flags=lanczos" \
-  -c:v libvpx-vp9 -b:v 5000k -deadline good -cpu-used 4 -row-mt 1 \
-  public/video/hero.webm
+  -c:v libx264 -preset slow -profile:v high -level 5.2 -pix_fmt yuv420p \
+  -b:v 5000k -movflags +faststart \
+  public/video/hero-4k.mp4
 ```
 
-Expected: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm` itself is 3840x2160, 24fps, has no audio stream, and is `<= 10485760` bytes. Do not point the app at a second desktop hero video filename.
+Expected: `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-4k.mp4` itself is 3840x2160, 24fps, H.264/yuv420p, has no audio stream, and is `<= 10485760` bytes. `/video/hero.webm` remains a 4K VP9 fallback, not the desktop primary.
 
 - [ ] **Step 3: Add section stills**
 
@@ -1380,7 +1393,7 @@ ffprobe -v error \
   -select_streams v:0 \
   -show_entries stream=codec_name,width,height,pix_fmt,r_frame_rate \
   -show_entries format=duration,size \
-  -of json /Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm
+  -of json /Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-4k.mp4
 ```
 
 Expected:
@@ -1402,7 +1415,7 @@ Run:
 ffprobe -v error -select_streams a -show_entries stream=codec_name -of csv=p=0 /Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm
 ```
 
-Expected: no output. If this command prints `aac` or any other codec, asset QA fails and Task 6 Step 2 must be rerun against the runtime `/public/video/hero.webm`.
+Expected: no output. Also run the same command against `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-4k.mp4`. If either file prints `aac` or any other codec, asset QA fails and Task 6 Step 2 must be rerun.
 
 - [ ] **Step 3: Inspect image dimensions**
 
@@ -1435,7 +1448,7 @@ Expected:
 ```text
 large section images <= 900KB each
 report thumbnails <= 300KB each
-hero.webm runtime file 4K WebM primary
+hero-4k.mp4 runtime file is the 4K MP4 desktop primary
 ```
 
 - [ ] **Step 5: Manual asset invariant check**
@@ -1548,7 +1561,7 @@ Story data
 |---|---|---:|---|
 | Existing reference site theme leaks through | High | Medium | Replace all LandingPage template copy and remove stats/logo sections in Task 5 |
 | Missing assets create blank sections | High | Medium | Use exact `/video/*` and `/images/*` filenames and check console 404s in Task 6 |
-| Hero video fails or loads slowly | High | Medium | Task 5 renders a visible poster underlay and keeps it visible on video error |
+| Hero video fails or loads slowly | High | Medium | Task 5 uses native `loop`, desktop H.264 MP4 primary, mobile-specific video, preload hints, and Vercel video cache headers |
 | Chinese animation looks broken if `BlurText` is reused | Medium | Medium | Task 2 makes `BlurText` optional and character-based; Hero itself uses one semantic `h1` |
 | Heavy glass blur hurts mobile | Medium | Medium | Use LiquidGlass only for nav and small overlays; use normal surfaces elsewhere |
 | GLB delays first launch | High | Medium | Explicitly defer GLB until after visual baseline passes |

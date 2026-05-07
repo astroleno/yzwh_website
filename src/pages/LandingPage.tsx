@@ -26,8 +26,9 @@ export const LandingPage: React.FC = () => {
           fallbackSrc={assetPaths.heroVideoFallback}
           sources={[
             { src: assetPaths.heroVideoMobile, type: "video/webm", media: "(max-width: 767px)" },
+            { src: assetPaths.heroVideoFallback, type: "video/mp4", media: "(max-width: 767px)" },
+            { src: assetPaths.heroVideoMp4, type: "video/mp4", media: "(min-width: 768px)" },
             { src: assetPaths.heroVideo, type: "video/webm", media: "(min-width: 768px)" },
-            { src: assetPaths.heroVideoFallback, type: "video/mp4" },
           ]}
           className="absolute inset-0 z-0"
           videoClassName="object-[58%_50%] md:object-center"

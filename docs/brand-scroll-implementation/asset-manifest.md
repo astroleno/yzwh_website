@@ -13,7 +13,10 @@
 代码里使用 public 路径：
 
 ```text
+/video/hero-4k.mp4
 /video/hero.webm
+/video/hero-mobile.webm
+/video/hero.mp4
 /images/risk-facade.jpg
 /images/flight-building.jpg
 /images/intelligence-facade.jpg
@@ -30,22 +33,27 @@
 已到位文件：
 
 ```text
+/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-4k.mp4
 /Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm
+/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-mobile.webm
+/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.mp4
 ```
 
 已检查参数：
 
 ```text
-codec: vp9
+desktop primary codec: h264
+desktop fallback codec: vp9
 size: 3840x2160
 pixel format: yuv420p
 frame rate: 24fps
 duration: 15.00s
-file size: 9.37MB
+desktop MP4 file size: 9.65MB
+desktop WebM file size: 9.37MB
 audio: none
 ```
 
-视觉判断：城市公共建筑主体明确，航拍推进和蓝色扫描光符合 Hero 方向，适合作为首屏视频。运行时直接播放 4K WebM，不再使用 hero poster 或图片占位层。
+视觉判断：城市公共建筑主体明确，航拍推进和蓝色扫描光符合 Hero 方向，适合作为首屏视频。运行时桌面优先播放 4K H.264 MP4，降低 VP9 4K 解码卡顿风险；4K WebM 保留为后备，不使用 hero poster 或图片占位层。
 
 ## 现有参考素材
 
@@ -61,7 +69,8 @@ audio: none
 
 | 目标文件 | 类型 | 推荐尺寸 | 使用章节 | 生产说明 |
 |---|---|---:|---|---|
-| `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm` | WebM | 3840x2160 | Hero | 已到位。24fps、无音轨、约 9.37MB；Hero 直接播放视频，不使用图片占位 |
+| `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-4k.mp4` | MP4 | 3840x2160 | Hero desktop primary | 已到位。H.264、24fps、无音轨、约 9.65MB；桌面首选，`faststart` |
+| `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm` | WebM | 3840x2160 | Hero desktop fallback | 已到位。VP9、24fps、无音轨、约 9.37MB；不作为桌面首选 |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/risk-facade.jpg` | JPG | 2200x1400 | Invisible Risk | 干净建筑外立面近景，留足标注空间；可参考 `report-spread.jpg` 的外墙材质 |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/flight-building.jpg` | JPG | 2200x1400 | Flight To Insight | 俯瞰或三分之二角度建筑图，适合叠加航线和采集点 |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/intelligence-facade.jpg` | JPG | 1800x1200 | Intelligence Layer | 正立面或局部立面，适合 AI 框选和风险标签 |
@@ -112,7 +121,7 @@ audio: none
 - 所有报告核心内容以 DOM/SVG 文字实现；位图只作为证据缩略图或材质图。
 - 第一版运行时图片全部为 JPG，路径以 `/images/*.jpg` 为准；不存在未接入的 WebP/AVIF 旁路格式。
 - Hero 视频循环点不可感知，首帧和尾帧亮度、镜头位置、扫描光状态连续。
-- Hero 源视频已是 H.264、yuv420p、4K；运行时 `/video/hero.webm`（桌面 4K） 必须为无音轨、4K WebM、海报图 450KB 以内。
+- Hero 桌面主视频为 `/video/hero-4k.mp4`：H.264、yuv420p、4K、24fps、无音轨、10MB 以内、`faststart`；`/video/hero.webm` 只作为 VP9 后备。
 - `science-museum-case.jpg` 必须能追溯到已验证源图或源帧，并通过人工对照：建筑几何、屋顶轮廓、立面比例和周边关系不得被生成模型改写。
 - 移动端可以使用同一素材裁切，不出现关键建筑主体被完全裁掉。
 - GLB 若加入，移动端必须有纯图片/SVG fallback。

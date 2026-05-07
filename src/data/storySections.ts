@@ -1,5 +1,6 @@
 export const assetPaths = {
   heroVideo: "/video/hero.webm",
+  heroVideoMp4: "/video/hero-4k.mp4",
   heroVideoMobile: "/video/hero-mobile.webm",
   heroVideoFallback: "/video/hero.mp4",
   riskFacade: "/images/risk-facade.jpg",
