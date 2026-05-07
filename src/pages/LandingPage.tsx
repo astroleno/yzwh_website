@@ -20,10 +20,12 @@ export const LandingPage: React.FC = () => {
       <Navbar />
       <ScrollStoryController />
 
-      <section id="hero" className="relative flex min-h-[92dvh] flex-col justify-end overflow-hidden px-5 pb-12 pt-28 md:px-10 lg:px-16">
+      <section id="hero" data-scroll-scene="hero" className="relative flex min-h-[92dvh] flex-col justify-end overflow-hidden px-5 pb-12 pt-28 md:px-10 lg:px-16">
         <FadingVideo
           src={assetPaths.heroVideo}
           fallbackSrc={assetPaths.heroVideoFallback}
+          backdropSrc={assetPaths.heroPanorama}
+          backdropAlt={assetAlts.heroPanorama}
           sources={[
             { src: assetPaths.heroVideoMobile, type: "video/webm", media: "(max-width: 767px)" },
             { src: assetPaths.heroVideoFallback, type: "video/mp4", media: "(max-width: 767px)" },
@@ -31,6 +33,7 @@ export const LandingPage: React.FC = () => {
             { src: assetPaths.heroVideo, type: "video/webm", media: "(min-width: 768px)" },
           ]}
           className="absolute inset-0 z-0"
+          backdropClassName="scale-[1.04] object-[62%_52%] md:object-center"
           videoClassName="object-[58%_50%] md:object-center"
         />
         <div className="absolute inset-0 z-0 bg-gradient-to-b from-slate-950/16 via-slate-950/20 to-slate-950/82" />

@@ -36,7 +36,7 @@
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/pages/LandingPage.tsx` | Modify | Page orchestration and all section order |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/Navbar.tsx` | Modify | Brand navigation and primary CTA |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/BlurText.tsx` | Optional modify | Chinese-friendly text reveal only if reused outside the Hero; Hero `h1` must not depend on BlurText |
-| `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx` | Modify | Render native autoplaying looping hero video without poster underlay |
+| `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx` | Modify | Render permanent Hero panorama underlay and seam-hidden video overlay |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/index.css` | Modify | Design tokens, section utilities, reduced glass intensity |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/data/storySections.ts` | Create | Copy, labels, coordinates, case steps |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/SectionFrame.tsx` | Create | Shared section heading and layout shell |
@@ -46,6 +46,7 @@
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/ReportSequence.tsx` | Create | DOM/SVG report mock and report aggregation visual |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/CaseStoryboard.tsx` | Create | 深圳科学馆 four-step case |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/ScrollStoryController.tsx` | Create | Isolated GSAP/ScrollTrigger desktop orchestration and cleanup |
+| `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/pan_view.webp` | Existing | Hero permanent base panorama and scroll-exit background |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-4k.mp4` | Existing | Hero desktop primary video source |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm` | Existing | Hero desktop fallback video source |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/` | Create if missing | Runtime image assets |
@@ -125,6 +126,7 @@ Create `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/data/storySections.ts`
 
 ```ts
 export const assetPaths = {
+  heroPanorama: "/images/pan_view.webp",
   heroVideo: "/video/hero.webm",
   heroVideoMp4: "/video/hero-4k.mp4",
   heroVideoMobile: "/video/hero-mobile.webm",
@@ -139,6 +141,7 @@ export const assetPaths = {
 } as const;
 
 export const assetAlts = {
+  heroPanorama: "城市公共建筑群与周边道路绿地的日出全景，作为云筑万合首页的空间母场景。",
   riskFacade: "建筑外立面局部，风险标注展示空鼓、脱落、渗漏和热异常在真实材料表面的分布。",
   flightBuilding: "无人机巡检建筑的俯视空间，航线和采集点覆盖外立面与屋顶。",
   intelligenceFacade: "建筑立面影像被系统读取，检测框标出疑似渗漏、空鼓和热异常位置。",
@@ -821,9 +824,9 @@ Expected: all new component imports compile.
 - Modify: `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/pages/LandingPage.tsx`
 - Modify: `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx`
 
-- [ ] **Step 1: Replace `FadingVideo` with a native looping video wrapper**
+- [ ] **Step 1: Replace `FadingVideo` with a panorama-backed video wrapper**
 
-Replace `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx` with a wrapper that loops the hero video directly without a poster or still-image placeholder:
+Replace `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx` with a wrapper that keeps `pan_view.webp` as the permanent Hero base scene and fades the video overlay at the loop boundary:
 
 ```tsx
 import React, { useEffect, useRef, useState } from "react";
@@ -929,7 +932,7 @@ export const FadingVideo: React.FC<FadingVideoProps> = ({
 };
 ```
 
-Expected: Hero contains a `<video>` as the visual layer and no poster `<img>` layer. The loop fade still works at the end of playback.
+Expected: Hero contains a permanent `pan_view.webp` `<img>` base layer plus a video overlay. The image is not a browser poster; it remains visible under the video and hides the loop boundary while the video resets.
 
 - [ ] **Step 2: Replace `LandingPage.tsx`**
 
@@ -1561,7 +1564,7 @@ Story data
 |---|---|---:|---|
 | Existing reference site theme leaks through | High | Medium | Replace all LandingPage template copy and remove stats/logo sections in Task 5 |
 | Missing assets create blank sections | High | Medium | Use exact `/video/*` and `/images/*` filenames and check console 404s in Task 6 |
-| Hero video fails or loads slowly | High | Medium | Task 5 uses native `loop`, desktop H.264 MP4 primary, mobile-specific video, preload hints, and Vercel video cache headers |
+| Hero video fails or loads slowly | High | Medium | Task 5 uses `pan_view.webp` as the immediate base scene, desktop H.264 MP4 primary, mobile-specific video, image preload, and Vercel media cache headers |
 | Chinese animation looks broken if `BlurText` is reused | Medium | Medium | Task 2 makes `BlurText` optional and character-based; Hero itself uses one semantic `h1` |
 | Heavy glass blur hurts mobile | Medium | Medium | Use LiquidGlass only for nav and small overlays; use normal surfaces elsewhere |
 | GLB delays first launch | High | Medium | Explicitly defer GLB until after visual baseline passes |
@@ -1574,7 +1577,7 @@ Story data
 - The plan covers all requested sections: Hero, Invisible Risk, Flight To Insight, Intelligence Layer, Report As Decision, Flagship Case / CTA.
 - The first pass requires GSAP/ScrollTrigger for desktop scrolltelling but does not require GLB or Three.js.
 - Report core content is DOM/SVG, not generated text inside a raster image.
-- Hero media has a visible poster fallback and codec/byte-size budgets.
+- Hero media has a permanent panorama base scene plus codec/byte-size budgets for video overlays.
 - Every runtime source file path is exact.
 - All asset filenames are exact and map to Vite public URLs.
 - The plan includes asset QA, type/build verification, and desktop/mobile visual checks.

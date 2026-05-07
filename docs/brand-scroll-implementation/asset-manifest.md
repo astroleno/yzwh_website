@@ -13,6 +13,7 @@
 代码里使用 public 路径：
 
 ```text
+/images/pan_view.webp
 /video/hero-4k.mp4
 /video/hero.webm
 /video/hero-mobile.webm
@@ -28,11 +29,12 @@
 
 第一版运行时图片格式统一为 JPG，路径必须和上面完全一致。暂不实现 AVIF/WebP `picture/srcset` 分支；如果二期要做多格式，再新增完整编码、引用和 QA 清单。
 
-## 当前 Hero 视频状态
+## 当前 Hero 媒体状态
 
 已到位文件：
 
 ```text
+/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/pan_view.webp
 /Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-4k.mp4
 /Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm
 /Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-mobile.webm
@@ -42,6 +44,7 @@
 已检查参数：
 
 ```text
+panorama: 5793x2896 WebP, 3.7MB
 desktop primary codec: h264
 desktop fallback codec: vp9
 size: 3840x2160
@@ -53,7 +56,7 @@ desktop WebM file size: 9.37MB
 audio: none
 ```
 
-视觉判断：城市公共建筑主体明确，航拍推进和蓝色扫描光符合 Hero 方向，适合作为首屏视频。运行时桌面优先播放 4K H.264 MP4，降低 VP9 4K 解码卡顿风险；4K WebM 保留为后备，不使用 hero poster 或图片占位层。
+视觉判断：`pan_view.webp` 作为 Hero 常驻母场景，承担首屏稳定画面、循环接缝和滚动离场背景；动态视频层覆盖其上。运行时桌面优先播放 4K H.264 MP4，降低 VP9 4K 解码卡顿风险；4K WebM 保留为后备。
 
 ## 现有参考素材
 
@@ -69,6 +72,7 @@ audio: none
 
 | 目标文件 | 类型 | 推荐尺寸 | 使用章节 | 生产说明 |
 |---|---|---:|---|---|
+| `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/pan_view.webp` | WebP | 5793x2896 | Hero base panorama | 已到位。Hero 常驻底层，承担母场景、首屏稳定画面、接缝隐藏和滚动视差背景 |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-4k.mp4` | MP4 | 3840x2160 | Hero desktop primary | 已到位。H.264、24fps、无音轨、约 9.65MB；桌面首选，`faststart` |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm` | WebM | 3840x2160 | Hero desktop fallback | 已到位。VP9、24fps、无音轨、约 9.37MB；不作为桌面首选 |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/risk-facade.jpg` | JPG | 2200x1400 | Invisible Risk | 干净建筑外立面近景，留足标注空间；可参考 `report-spread.jpg` 的外墙材质 |
@@ -120,7 +124,7 @@ audio: none
 - 所有最终图片没有字幕、水印、明显视频 UI 或无关人物。
 - 所有报告核心内容以 DOM/SVG 文字实现；位图只作为证据缩略图或材质图。
 - 第一版运行时图片全部为 JPG，路径以 `/images/*.jpg` 为准；不存在未接入的 WebP/AVIF 旁路格式。
-- Hero 视频循环点不可感知，首帧和尾帧亮度、镜头位置、扫描光状态连续。
+- Hero 全景图常驻底层，视频层首尾淡出露出全景图，循环点不可感知。
 - Hero 桌面主视频为 `/video/hero-4k.mp4`：H.264、yuv420p、4K、24fps、无音轨、10MB 以内、`faststart`；`/video/hero.webm` 只作为 VP9 后备。
 - `science-museum-case.jpg` 必须能追溯到已验证源图或源帧，并通过人工对照：建筑几何、屋顶轮廓、立面比例和周边关系不得被生成模型改写。
 - 移动端可以使用同一素材裁切，不出现关键建筑主体被完全裁掉。

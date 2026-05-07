@@ -11,6 +11,24 @@ export const ScrollStoryController: React.FC = () => {
 
     mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
       const timelines: gsap.core.Timeline[] = [];
+      const hero = document.querySelector<HTMLElement>("[data-scroll-scene='hero']");
+      const panorama = hero?.querySelector<HTMLElement>("[data-hero-panorama]");
+
+      if (hero && panorama) {
+        gsap.set(panorama, { yPercent: -2, scale: 1.06, transformOrigin: "50% 50%" });
+        const heroTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: hero,
+            start: "top top",
+            end: "bottom top",
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        });
+        timelines.push(heroTl);
+        heroTl.to(panorama, { yPercent: 5, scale: 1.02, ease: "none" });
+      }
+
       const flight = document.querySelector<HTMLElement>("[data-scroll-scene='flight']");
       if (flight) {
         const route = flight.querySelector<SVGPathElement>("[data-flight-route]");

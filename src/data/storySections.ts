@@ -1,4 +1,5 @@
 export const assetPaths = {
+  heroPanorama: "/images/pan_view.webp",
   heroVideo: "/video/hero.webm",
   heroVideoMp4: "/video/hero-4k.mp4",
   heroVideoMobile: "/video/hero-mobile.webm",
@@ -13,6 +14,7 @@ export const assetPaths = {
 } as const;
 
 export const assetAlts = {
+  heroPanorama: "城市公共建筑群与周边道路绿地的日出全景，作为云筑万合首页的空间母场景。",
   riskFacade: "建筑外立面局部，风险标注展示空鼓、脱落、渗漏和热异常在真实材料表面的分布。",
   flightBuilding: "无人机巡检建筑的俯视空间，航线和采集点覆盖外立面与屋顶。",
   intelligenceFacade: "建筑立面影像被系统读取，检测框标出疑似渗漏、空鼓和热异常位置。",
