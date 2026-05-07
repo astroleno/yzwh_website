@@ -4,9 +4,9 @@
 
 **Goal:** Convert the reference Vite React site into a premium scroll-story landing page for 云筑万合, following `Hero -> Invisible Risk -> Flight To Insight -> Intelligence Layer -> Report As Decision -> Flagship Case / CTA`.
 
-**Architecture:** Keep the current Vite/React/Tailwind stack and replace the space-tourism template with a data-driven long page. Build a static accessible baseline first, then add an isolated desktop GSAP/ScrollTrigger pass for pinned scrubbed scrolltelling; mobile uses transform/opacity reveal fallbacks. Defer Three.js/GLB until the scroll story is visually stable.
+**Architecture:** Keep the current Vite/React/Tailwind stack and replace the space-tourism template with a data-driven long page. Build a static accessible baseline first, then add an isolated desktop GSAP/ScrollTrigger pass for pinned scrubbed scrolltelling; mobile uses transform/opacity reveal fallbacks. Three.js is scoped to the Hero panorama texture projection only; GLB remains deferred.
 
-**Tech Stack:** React 19, TypeScript, Vite 6, Tailwind CSS v4, `motion` for simple UI entrances outside pinned scenes, `gsap` + `@gsap/react` + `ScrollTrigger` for desktop scrolltelling, `lucide-react`, static assets in the repo root `public/` directory.
+**Tech Stack:** React 19, TypeScript, Vite 6, Tailwind CSS v4, `motion` for simple UI entrances outside pinned scenes, `gsap` + `@gsap/react` + `ScrollTrigger` for desktop scrolltelling, `three` for the Hero panorama sphere, `lucide-react`, static assets in the repo root `public/` directory.
 
 ---
 
@@ -16,11 +16,11 @@
 
 **Content plan:** Hero establishes brand height; Invisible Risk reveals hidden facade problems; Flight To Insight shows drone sensing; Intelligence Layer turns imagery into explained risk; Report As Decision turns data into an actionable engineering report; Flagship Case / CTA anchors the story in 深圳科学馆.
 
-**Interaction plan:** Use one entrance sequence for Hero, GSAP-pinned desktop scenes for Flight, scrubbed transform/opacity progress for routes, scan bars, report assembly, and case state changes. Mobile uses shorter reveal sections instead of pinned scenes, and all continuous motion uses transform/opacity rather than layout properties.
+**Interaction plan:** Use one entrance sequence for Hero, then let GSAP take over the desktop Hero video on scroll by interpolating from the current `video.currentTime` to about `7.45s`, where the drone reaches the closest usable framing. Use GSAP-pinned desktop scenes for Flight, scrubbed transform/opacity progress for routes, scan bars, report assembly, and case state changes. Mobile uses shorter reveal sections instead of pinned scenes, and all continuous motion uses transform/opacity rather than layout properties.
 
 ## Non-Goals For First Pass
 
-- Do not add `three`, `@react-three/fiber`, or GLB model loading in the first pass.
+- Do not add broad 3D scene work, `@react-three/fiber`, or GLB model loading in the first pass. The only allowed Three.js usage is the Hero panorama projection.
 - Do not ship the page as a premium scroll story if desktop GSAP/ScrollTrigger pinning and scrubbed progress are missing.
 - Do not create a full city/building GLB for the site.
 - Do not keep the current space-travel copy, stats cards, partner logo strip, or purple space gradients.
@@ -31,12 +31,13 @@
 
 | Path | Action | Responsibility |
 |---|---|---|
-| `/Users/aitoshuu/Documents/GitHub/yzwh_website/package.json` | Modify | Add `gsap` and `@gsap/react` for desktop scrolltelling |
+| `/Users/aitoshuu/Documents/GitHub/yzwh_website/package.json` | Modify | Add `gsap` and `@gsap/react` for desktop scrolltelling, plus `three` for Hero panorama projection |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/vite.config.ts` | Modify | Serve repo-root `public/` so `/video/hero-4k.mp4` and fallback video assets resolve from the root Vite app |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/pages/LandingPage.tsx` | Modify | Page orchestration and all section order |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/Navbar.tsx` | Modify | Brand navigation and primary CTA |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/BlurText.tsx` | Optional modify | Chinese-friendly text reveal only if reused outside the Hero; Hero `h1` must not depend on BlurText |
-| `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx` | Modify | Render permanent Hero panorama underlay and seam-hidden video overlay |
+| `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx` | Modify | Render permanent Hero WebGL panorama underlay and seam-hidden video overlay |
+| `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/HeroPanorama.tsx` | Create | Map `/images/pan_view.webp` to an inside-out Three.js sphere and expose it as the Hero base layer |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/index.css` | Modify | Design tokens, section utilities, reduced glass intensity |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/data/storySections.ts` | Create | Copy, labels, coordinates, case steps |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/SectionFrame.tsx` | Create | Shared section heading and layout shell |
@@ -46,7 +47,7 @@
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/ReportSequence.tsx` | Create | DOM/SVG report mock and report aggregation visual |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/CaseStoryboard.tsx` | Create | 深圳科学馆 four-step case |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/ScrollStoryController.tsx` | Create | Isolated GSAP/ScrollTrigger desktop orchestration and cleanup |
-| `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/pan_view.webp` | Existing | Hero permanent base panorama and scroll-exit background |
+| `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/pan_view.webp` | Existing | Hero panorama texture for WebGL sphere projection and scroll-exit background |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero-4k.mp4` | Existing | Hero desktop primary video source |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm` | Existing | Hero desktop fallback video source |
 | `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/` | Create if missing | Runtime image assets |
@@ -75,10 +76,10 @@ Run:
 
 ```bash
 cd /Users/aitoshuu/Documents/GitHub/yzwh_website
-npm install gsap @gsap/react
+npm install gsap @gsap/react three
 ```
 
-Expected: `package.json` and the lockfile include `gsap` and `@gsap/react`. Do not install `three`, `@react-three/fiber`, or GSAP plugins beyond the bundled `ScrollTrigger`.
+Expected: `package.json` and the lockfile include `gsap`, `@gsap/react`, and `three`. Do not install `@react-three/fiber` or GSAP plugins beyond the bundled `ScrollTrigger`.
 
 - [ ] **Step 2: Configure Vite to serve the repo-root public directory**
 
@@ -823,116 +824,21 @@ Expected: all new component imports compile.
 **Files:**
 - Modify: `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/pages/LandingPage.tsx`
 - Modify: `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx`
+- Create: `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/HeroPanorama.tsx`
 
-- [ ] **Step 1: Replace `FadingVideo` with a panorama-backed video wrapper**
+- [ ] **Step 1: Replace `FadingVideo` with a WebGL panorama-backed video wrapper**
 
-Replace `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx` with a wrapper that keeps `pan_view.webp` as the permanent Hero base scene and fades the video overlay at the loop boundary:
+Create `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/HeroPanorama.tsx` and wire `/Users/aitoshuu/Documents/GitHub/yzwh_website/src/components/FadingVideo.tsx` so `pan_view.webp` is mapped into an inside-out Three.js sphere. `FadingVideo` must place the video as a separate overlay and fade it out at the loop boundary:
 
-```tsx
-import React, { useEffect, useRef, useState } from "react";
-import { cn } from "../lib/utils";
+Implementation requirements:
 
-interface FadingVideoProps extends React.VideoHTMLAttributes<HTMLVideoElement> {
-  src: string;
-  className?: string;
-  videoClassName?: string;
-}
+- `HeroPanorama` creates a `WebGLRenderer`, maps `/images/pan_view.webp` onto an inside-out `SphereGeometry`, and controls the camera with desktop/mobile `fov/yaw/pitch` presets.
+- `FadingVideo` renders `HeroPanorama` first, then renders `[data-hero-video]` as an absolutely positioned overlay.
+- The video must not use native hard `loop`; it should fade out before the ending, reset `currentTime`, replay, and fade back in so the WebGL panorama hides the seam.
+- `ScrollStoryController` must pause the Hero video after scroll begins and map the current playback time to roughly `7.45s`. If the current time is already past that point, the mapping rewinds; if it is before that point, it fast-forwards.
+- The old flat `<img data-hero-panorama>` pattern is not acceptable.
 
-export const FadingVideo: React.FC<FadingVideoProps> = ({
-  src,
-  className,
-  videoClassName,
-  style,
-  onCanPlay,
-  onError,
-  ...props
-}) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const rAfRef = useRef<number>(0);
-  const fadingOutRef = useRef(false);
-  const [hasError, setHasError] = useState(false);
-
-  const fadeTo = (targetOpacity: number) => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    cancelAnimationFrame(rAfRef.current);
-    const startOpacity = parseFloat(video.style.opacity || "0");
-    const startTime = performance.now();
-    const fadeMs = 500;
-
-    const animateFade = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / fadeMs, 1);
-      const currentOpacity = startOpacity + (targetOpacity - startOpacity) * progress;
-      if (videoRef.current) videoRef.current.style.opacity = currentOpacity.toString();
-      if (progress < 1) rAfRef.current = requestAnimationFrame(animateFade);
-    };
-
-    rAfRef.current = requestAnimationFrame(animateFade);
-  };
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || hasError) return;
-
-    const handleTimeUpdate = () => {
-      if (!video.duration) return;
-      const remaining = video.duration - video.currentTime;
-      if (remaining <= 0.55 && remaining > 0 && !fadingOutRef.current) {
-        fadingOutRef.current = true;
-        fadeTo(0);
-      }
-    };
-
-    const handleEnded = () => {
-      video.style.opacity = "0";
-      window.setTimeout(() => {
-        if (!videoRef.current || hasError) return;
-        videoRef.current.currentTime = 0;
-        videoRef.current.play().catch(() => setHasError(true));
-        fadingOutRef.current = false;
-        fadeTo(1);
-      }, 100);
-    };
-
-    video.addEventListener("timeupdate", handleTimeUpdate);
-    video.addEventListener("ended", handleEnded);
-    return () => {
-      cancelAnimationFrame(rAfRef.current);
-      video.removeEventListener("timeupdate", handleTimeUpdate);
-      video.removeEventListener("ended", handleEnded);
-    };
-  }, [hasError]);
-
-  return (
-    <div className={cn("relative overflow-hidden", className)}>
-      <video
-        ref={videoRef}
-        src={src}
-        className={cn("absolute inset-0 h-full w-full object-cover transition-opacity duration-500", videoClassName)}
-        style={{ ...style, opacity: hasError ? 0 : 1 }}
-        autoPlay
-        muted
-        playsInline
-        preload="auto"
-        onCanPlay={(event) => {
-          event.currentTarget.play().catch(() => setHasError(true));
-          fadeTo(1);
-          onCanPlay?.(event);
-        }}
-        onError={(event) => {
-          setHasError(true);
-          onError?.(event);
-        }}
-        {...props}
-      />
-    </div>
-  );
-};
-```
-
-Expected: Hero contains a permanent `pan_view.webp` `<img>` base layer plus a video overlay. The image is not a browser poster; it remains visible under the video and hides the loop boundary while the video resets.
+Expected: Hero contains a permanent `[data-hero-panorama]` WebGL canvas backed by `/images/pan_view.webp` plus a video overlay. The panorama is not a browser poster and not a flat `<img>`; it remains visible under the video and hides the loop boundary while the video resets.
 
 - [ ] **Step 2: Replace `LandingPage.tsx`**
 
@@ -1564,7 +1470,7 @@ Story data
 |---|---|---:|---|
 | Existing reference site theme leaks through | High | Medium | Replace all LandingPage template copy and remove stats/logo sections in Task 5 |
 | Missing assets create blank sections | High | Medium | Use exact `/video/*` and `/images/*` filenames and check console 404s in Task 6 |
-| Hero video fails or loads slowly | High | Medium | Task 5 uses `pan_view.webp` as the immediate base scene, desktop H.264 MP4 primary, mobile-specific video, image preload, and Vercel media cache headers |
+| Hero video fails or loads slowly | High | Medium | Task 5 uses `pan_view.webp` as the immediate WebGL panorama base scene, desktop H.264 MP4 primary, mobile-specific video, image preload, and Vercel media cache headers |
 | Chinese animation looks broken if `BlurText` is reused | Medium | Medium | Task 2 makes `BlurText` optional and character-based; Hero itself uses one semantic `h1` |
 | Heavy glass blur hurts mobile | Medium | Medium | Use LiquidGlass only for nav and small overlays; use normal surfaces elsewhere |
 | GLB delays first launch | High | Medium | Explicitly defer GLB until after visual baseline passes |
@@ -1575,9 +1481,9 @@ Story data
 ## Self-Review Checklist
 
 - The plan covers all requested sections: Hero, Invisible Risk, Flight To Insight, Intelligence Layer, Report As Decision, Flagship Case / CTA.
-- The first pass requires GSAP/ScrollTrigger for desktop scrolltelling but does not require GLB or Three.js.
+- The first pass requires GSAP/ScrollTrigger for desktop scrolltelling and only uses Three.js for Hero panorama projection; it does not require GLB.
 - Report core content is DOM/SVG, not generated text inside a raster image.
-- Hero media has a permanent panorama base scene plus codec/byte-size budgets for video overlays.
+- Hero media has a permanent WebGL panorama base scene plus codec/byte-size budgets for video overlays.
 - Every runtime source file path is exact.
 - All asset filenames are exact and map to Vite public URLs.
 - The plan includes asset QA, type/build verification, and desktop/mobile visual checks.

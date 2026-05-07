@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { HeroPanorama } from "./HeroPanorama";
 import { cn } from "../lib/utils";
 
 type FadingVideoSource = {
@@ -40,6 +41,33 @@ export const FadingVideo: React.FC<FadingVideoProps> = ({
 
   useEffect(() => {
     const video = videoRef.current;
+    if (!video) return;
+
+    const revealVideo = () => {
+      if (video.readyState >= 2 || !video.paused) {
+        setHasError(false);
+        setIsVideoVisible(true);
+      }
+    };
+    if (video.readyState >= 2) revealVideo();
+
+    video.addEventListener("loadedmetadata", revealVideo);
+    video.addEventListener("loadeddata", revealVideo);
+    video.addEventListener("canplay", revealVideo);
+    video.addEventListener("playing", revealVideo);
+    video.addEventListener("timeupdate", revealVideo);
+
+    return () => {
+      video.removeEventListener("loadedmetadata", revealVideo);
+      video.removeEventListener("loadeddata", revealVideo);
+      video.removeEventListener("canplay", revealVideo);
+      video.removeEventListener("playing", revealVideo);
+      video.removeEventListener("timeupdate", revealVideo);
+    };
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
     if (!video || hasError) return;
 
     const resetLoop = () => {
@@ -47,7 +75,7 @@ export const FadingVideo: React.FC<FadingVideoProps> = ({
       seamTimeoutRef.current = window.setTimeout(() => {
         if (!videoRef.current || hasError) return;
         videoRef.current.currentTime = 0;
-        videoRef.current.play().catch(() => setHasError(true));
+        videoRef.current.play().catch(() => undefined);
         setIsVideoVisible(true);
         window.setTimeout(() => {
           seamActiveRef.current = false;
@@ -84,13 +112,10 @@ export const FadingVideo: React.FC<FadingVideoProps> = ({
 
   return (
     <div className={cn("overflow-hidden", className)}>
-      <img
+      <HeroPanorama
         src={backdropSrc}
         alt={backdropAlt}
-        data-hero-panorama
-        className={cn("absolute inset-0 h-full w-full object-cover will-change-transform", backdropClassName)}
-        decoding="async"
-        fetchPriority="high"
+        className={backdropClassName}
       />
       <video
         ref={videoRef}
@@ -103,11 +128,15 @@ export const FadingVideo: React.FC<FadingVideoProps> = ({
         preload="auto"
         onCanPlay={(event) => {
           setIsVideoVisible(true);
-          event.currentTarget.play().catch(() => setHasError(true));
+          if (event.currentTarget.dataset.heroScrollScrub !== "active") {
+            event.currentTarget.play().catch(() => undefined);
+          }
           onCanPlay?.(event);
         }}
         onError={(event) => {
-          setHasError(true);
+          if (event.currentTarget.networkState === HTMLMediaElement.NETWORK_NO_SOURCE || event.currentTarget.readyState === 0) {
+            setHasError(true);
+          }
           onError?.(event);
         }}
         {...props}

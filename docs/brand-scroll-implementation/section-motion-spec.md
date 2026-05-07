@@ -52,23 +52,23 @@ Hero -> Invisible Risk -> Flight To Insight -> Intelligence Layer -> Report As D
 
 **视觉**：
 
-- 全屏首尾循环视频 `/video/hero.webm`（桌面 4K）。
+- WebGL 全景母场景 `/images/pan_view.webp` 先出现，映射为内球面相机视角；全屏首尾淡出视频覆盖其上，桌面优先 `/video/hero-4k.mp4`，`/video/hero.webm` 作为 4K fallback。
 - 文案左下或偏左下，避开视频主体高亮区域；主品牌陈述必须是单个语义 `h1`，宽容器、起始对齐。
-- 移动端视频和 poster 使用同一组 `object-position` 裁切类，先按 `object-[58%_50%] md:object-center` 执行，再用 390x844 和桌面截图复核建筑主体。
+- 移动端视频使用 `object-position` 保住建筑主体；全景母场景通过相机 `fov/yaw/pitch` 单独校准，再用 390x844 和桌面截图复核建筑主体。
 - 不放统计卡片、logo 列表、功能标签堆。
 - 底部露出下一节 8-12vh，让滚动叙事有牵引。
 
 **动效**：
 
-- 初载：视频先出现，品牌名 300ms 后淡入。
-- 循环：扫描光和镜头轻微漂移。
-- 下滚：hero 文案淡出，视频压暗，第一枚风险标注在画面下缘出现。
+- 初载：全景母场景先出现，视频可播放后淡入，品牌名 300ms 后淡入。
+- 循环：视频在结尾淡出，露出全景母场景后重置再淡入；全景相机保持轻微漂移。
+- 下滚：桌面端 ScrollTrigger 暂停自动播放，把视频从当前 `currentTime` 插值到约 `7.45s` 的无人机近景；若当前播放超过该时间点则回放，未到则快放。hero 文案淡出，视频压暗，第一枚风险标注在画面下缘出现。
 
 **组件落点**：
 
-- `FadingVideo` 负责视频循环和淡入。
+- `HeroPanorama` 负责 WebGL 全景纹理置入，`FadingVideo` 负责视频循环和淡入，`ScrollStoryController` 负责桌面 Hero 视频滚动接管。
 - `LandingPage.tsx` 负责 Hero 结构。
-- Hero 资产已放入 `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/hero.webm`，代码里使用 `/video/hero.webm`（桌面 4K）。
+- Hero 资产已放入 `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/images/pan_view.webp` 和 `/Users/aitoshuu/Documents/GitHub/yzwh_website/public/video/`，代码里使用 `/images/pan_view.webp`、`/video/hero-4k.mp4` 和 `/video/hero.webm`。
 
 ## Invisible Risk
 
@@ -258,7 +258,7 @@ Hero -> Invisible Risk -> Flight To Insight -> Intelligence Layer -> Report As D
 ## 移动端策略
 
 - Hero 使用 `min-height: 92dvh` 留出下一节提示；section 使用 `100dvh/svh/dvh` 稳定移动端视口。
-- Hero 使用同一视频，但通过 `object-position` 保住建筑主体，并始终显示 poster fallback。
+- Hero 桌面和移动端使用不同视频源；全景母场景不是 poster，而是常驻 WebGL 底层，视频加载慢或循环重置时露出它。
 - Sticky 滚动段在移动端改为短 section 叠加 reveal，避免长 pin 造成卡顿。
 - 标注点数量保持 4 个以内。
 - LiquidGlass 降低 blur 强度或不用，用半透明深色面替代。

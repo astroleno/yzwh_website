@@ -33,7 +33,6 @@ export const LandingPage: React.FC = () => {
             { src: assetPaths.heroVideo, type: "video/webm", media: "(min-width: 768px)" },
           ]}
           className="absolute inset-0 z-0"
-          backdropClassName="scale-[1.04] object-[62%_52%] md:object-center"
           videoClassName="object-[58%_50%] md:object-center"
         />
         <div className="absolute inset-0 z-0 bg-gradient-to-b from-slate-950/16 via-slate-950/20 to-slate-950/82" />

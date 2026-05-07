@@ -9,7 +9,7 @@ npm install
 npm run dev
 ```
 
-默认开发地址为 `http://localhost:3000/`。当前项目使用 Vite、React、Tailwind CSS、Motion 与 GSAP。
+默认开发地址为 `http://localhost:3000/`。当前项目使用 Vite、React、Tailwind CSS、Motion、GSAP 与 Three.js Hero 全景层。
 
 ## 验证
 
